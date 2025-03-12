@@ -3,5 +3,4 @@ gunicorn
 requests
 selenium
 webdriver-manager
-
-
+chromedriver-autoinstaller
