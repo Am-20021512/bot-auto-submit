@@ -1,47 +1,58 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 import time
 
-# Input data
+# إدخال البيانات
 name = "Ahmed Maher"
 contact_number = "+201028098779"
 city = "Cairo"
 
-# Form URL
+# رابط النموذج
 form_url = "https://docs.google.com/forms/d/e/1FAIpQLSeXQSGgV-fnleedkPjcEdFDdJ5AMDNaXHqWge2WtdK_VfudQg/viewform"
 
-# Set up Chrome browser options
+# إعداد Chrome WebDriver باستخدام WebDriver Manager
 options = webdriver.ChromeOptions()
-options.add_argument("--start-maximized")
-driver = webdriver.Chrome(options=options)
+options.add_argument("--headless")  # تشغيل بدون واجهة رسومية
+options.add_argument("--no-sandbox")  # تعطيل وضع العزل الأمني
+options.add_argument("--disable-dev-shm-usage")  # حل مشاكل الذاكرة
 
-# Message counter
+# تشغيل ChromeDriver
+service = Service(ChromeDriverManager().install())
+driver = webdriver.Chrome(service=service, options=options)
+
+# عداد الرسائل
 messages_sent = 0
 
-# Run the bot infinitely
+# تشغيل البوت بشكل متكرر
 while True:
-    driver.get(form_url)  # Open the form
-    time.sleep(0.000001)  # Wait for the page to load
-
     try:
-        # Find all the text fields
+        driver.get(form_url)  # فتح النموذج
+        time.sleep(2)  # انتظار تحميل الصفحة
+
+        # البحث عن جميع الحقول النصية
         fields = driver.find_elements(By.XPATH, "//input[@type='text']")
+        
+        if len(fields) < 3:
+            print("⚠️ لم يتم العثور على الحقول المطلوبة!")
+            break  # إيقاف الكود في حال وجود مشكلة في النموذج
 
-        # Enter data in the fields
-        fields[0].send_keys(name)  # Name
-        fields[1].send_keys(contact_number)  # Contact number
-        fields[2].send_keys(city)  # City
+        # إدخال البيانات في الحقول
+        fields[0].send_keys(name)  # الاسم
+        fields[1].send_keys(contact_number)  # رقم الهاتف
+        fields[2].send_keys(city)  # المدينة
 
-        # Find the submit button and click it
+        # البحث عن زر الإرسال والنقر عليه
         submit_button = driver.find_element(By.XPATH, "//span[text()='إرسال']")
         submit_button.click()
 
-        # Update the counter
+        # تحديث العداد
         messages_sent += 1
-        print(f"✅ Data submitted successfully! (Total messages sent: {messages_sent})")
+        print(f"✅ البيانات تم إرسالها بنجاح! (إجمالي الرسائل المرسلة: {messages_sent})")
 
     except Exception as e:
-        print(f"⚠️ Error: {e}")
+        print(f"⚠️ خطأ أثناء إرسال البيانات: {e}")
 
-    time.sleep(0.000001)  # Wait before restarting
-    driver.refresh()  # Refresh the page
+    time.sleep(5)  # الانتظار قبل الإرسال مرة أخرى
+    driver.refresh()  # إعادة تحميل الصفحة
